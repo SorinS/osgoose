@@ -8,6 +8,8 @@ struct Stat { kind: i64, mode: i64, size: i64, nlink: i64, uid: i64, gid: i64, d
 struct MemInfo { total: i64, available: i64, swap_total: i64, swap_free: i64 }
 struct Rlimit { cur: i64, max: i64 }
 struct WinSize { rows: i64, cols: i64, xpixels: i64, ypixels: i64 }
+struct Child { pid: i64, handle: i64, stdin_fd: i64, stdout_fd: i64, stderr_fd: i64, pty: i64 }
+struct StatFs { bsize: i64, frsize: i64, blocks: i64, bfree: i64, bavail: i64, files: i64, ffree: i64, favail: i64, fsid: i64, flags: i64, namemax: i64 }
 
 extern fn platform_id() -> i32 = "gssys_platform_id";
 extern fn error_text(code: i64, out: u8[>..]&) -> i64 = "gssys_error_text";
@@ -22,6 +24,8 @@ extern fn uptime_ms() -> i64 = "gssys_uptime_ms";
 extern fn load_avg(out: f64[:]) -> i64 = "gssys_load_avg";    // posix
 extern fn temp_dir(out: u8[>..]&) -> i64 = "gssys_temp_dir";
 extern fn home_dir(out: u8[>..]&) -> i64 = "gssys_home_dir";
+extern fn os_info(out: u8[>..]&) -> i64 = "gssys_os_info";
+extern fn boot_time() -> i64 = "gssys_boot_time";
 extern fn getpid() -> i64 = "gssys_getpid";
 extern fn getppid() -> i64 = "gssys_getppid";
 extern fn exe_path(out: u8[>..]&) -> i64 = "gssys_exe_path";
@@ -55,6 +59,13 @@ extern fn readlink(path: const u8[:], out: u8[>..]&) -> i64 = "gssys_readlink";
 extern fn link(existing: const u8[:], newpath: const u8[:]) -> i64 = "gssys_link";
 extern fn truncate(path: const u8[:], size: i64) -> i64 = "gssys_truncate";
 extern fn utimes(path: const u8[:], atime_ns: i64, mtime_ns: i64) -> i64 = "gssys_utimes";
+extern fn lchmod(path: const u8[:], mode: i64) -> i64 = "gssys_lchmod";    // posix
+extern fn lutimes(path: const u8[:], atime_ns: i64, mtime_ns: i64) -> i64 = "gssys_lutimes";    // posix
+extern fn fchmod(fd: i64, mode: i64) -> i64 = "gssys_fchmod";    // posix
+extern fn fchown(fd: i64, uid: i64, gid: i64) -> i64 = "gssys_fchown";    // posix
+extern fn futimes(fd: i64, atime_ns: i64, mtime_ns: i64) -> i64 = "gssys_futimes";    // posix
+extern fn statfs(path: const u8[:], out: StatFs&) -> i64 = "gssys_statfs";    // posix
+extern fn fstatfs(fd: i64, out: StatFs&) -> i64 = "gssys_fstatfs";    // posix
 extern fn realpath(path: const u8[:], out: u8[>..]&) -> i64 = "gssys_realpath";
 extern fn mkdir(path: const u8[:], mode: i64) -> i64 = "gssys_mkdir";
 extern fn rmdir(path: const u8[:]) -> i64 = "gssys_rmdir";
@@ -75,6 +86,19 @@ extern fn lock(fd: i64, how: i32) -> i64 = "gssys_lock";
 extern fn pipe(fds: i64[:]) -> i64 = "gssys_pipe";
 extern fn std_fd(n: i32) -> i64 = "gssys_std_fd";
 extern fn isatty(fd: i64) -> i64 = "gssys_isatty";
+extern fn is_private(fd: i64) -> i64 = "gssys_is_private";
+extern fn available(fd: i64) -> i64 = "gssys_available";
+extern fn set_nonblock(fd: i64, on: i32) -> i64 = "gssys_set_nonblock";    // posix
+extern fn poll(fds: i64[:], events: i64[:], timeout_ms: i64) -> i64 = "gssys_poll";    // posix
+extern fn spawn(path: const u8[:], args: const u8[:], env: const u8[:], dir: const u8[:], flags: i64, stdio: i64[:], size: i64[:], out: Child&) -> i64 = "gssys_spawn";
+extern fn child_wait(c: Child&, timeout_ms: i64, status: i64[:]) -> i64 = "gssys_child_wait";
+extern fn child_kill(c: Child&, sig: i32) -> i64 = "gssys_child_kill";
+extern fn child_release(c: Child&) -> i64 = "gssys_child_release";
+extern fn pty_resize(c: Child&, cols: i64, rows: i64) -> i64 = "gssys_pty_resize";
+extern fn pty_close(c: Child&) -> i64 = "gssys_pty_close";
+extern fn fork() -> i64 = "gssys_fork";    // posix
+extern fn exit_now(code: i32) -> i64 = "gssys_exit_now";    // posix
+extern fn reap() -> i64 = "gssys_reap";    // posix
 extern fn reg_open(root: i64, path: const u8[:], access: i64) -> i64 = "gssys_reg_open";    // win
 extern fn reg_create(root: i64, path: const u8[:], access: i64, existed: i64[:]) -> i64 = "gssys_reg_create";    // win
 extern fn reg_close(key: i64) -> i64 = "gssys_reg_close";    // win
